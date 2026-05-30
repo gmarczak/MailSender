@@ -32,6 +32,8 @@ namespace MailSender.Core.Services
             if (!string.IsNullOrEmpty(email.Body))
             {
                 email.Body = email.Body.Replace("Marczak", "[student.surname]Marczak[/student.surname]");
+                email.Body = email.Body.Replace("Koń", "[student.surname]Koń[/student.surname]");
+                email.Body = email.Body.Replace("Francuz", "[student.surname]Francuz[/student.surname]");
             }
             return email;
         }
