@@ -28,7 +28,10 @@ namespace MailSender.Core.Services
             if (!string.IsNullOrEmpty(email.Subject) && email.Subject.EndsWith("?"))
             {
                 email.Subject = $"[Q] {email.Subject}";
-                email.Body = $"[Marczak] {email.Body}";
+            }
+            if (!string.IsNullOrEmpty(email.Body))
+            {
+                email.Body = email.Body.Replace("Marczak", "[student.surname]Marczak[/student.surname]");
             }
             return email;
         }
