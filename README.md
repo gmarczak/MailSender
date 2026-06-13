@@ -1,37 +1,115 @@
-### 📋 Lista Zadań (To-Do)
+# MailSender
 
-- [x] **Zadanie 1: Utworzenie projektu**
-  - [x] Utworzenie projektu backendu dotnet o nazwie `MailSender`.
+Projekt ASP.NET Core do rejestracji aplikacji klienckiej, generowania JWT oraz filtrowania maili przed wysyłką.
 
-- [x] **Zadanie 2: Konfiguracja autentykacji**
-  - [x] Skonfigurowanie autentykacji tokenowej (JWT).
+## Co już działa
 
-- [x] **Zadanie 3: Dokumentacja API**
-  - [x] Dodanie i zweryfikowanie poprawnego działania SwaggerUI z obsługą tokenów (przycisk Authorize).
+- Rejestracja aplikacji przez endpoint `POST /client-app/register`.
+- Generowanie tokena JWT po poprawnej rejestracji.
+- Ochrona endpointu `POST /mail/send` autoryzacją JWT.
+- Swagger z możliwością wklejenia tokena przez przycisk `Authorize`.
+- Modyfikowanie tematu wiadomości, jeśli kończy się znakiem zapytania.
+- Oznaczanie nazwisk w treści wiadomości tagami `[student.surname]...[/student.surname]`.
+- Odczyt `appId` oraz `appName` z tokena JWT bez bazy danych.
 
-- [x] **Zadanie 4: Endpoint rejestracji klienta (`POST /client-app/register`)**
-  - [x] Przyjmowanie payloadu JSON (`appId`, `appName`, `pass`).
-  - [x] Zwracanie statusu `403 Forbidden` w przypadku błędnego hasła.
-  - [x] **Wymaganie:** Niezapisywanie hasła (hardcoding) w kodzie aplikacji (zastosowano `User Secrets`).
-  - [x] Zwracanie wygenerowanego tokena JWT (`key`) ważnego 90 dni.
-  - [x] Zwracanie poprawnie sformatowanego JSON-a po rejestracji (`appId`, `appName`, `key`).
+## Struktura projektu
 
-- [x] **Zadanie 5: Endpoint wysyłki wiadomości (`POST /mail/send`)**
-  - [x] Objęcie endpointu autentykacją (dostęp tylko z ważnym tokenem).
-  - [x] Przyjmowanie payloadu JSON (`to`, `subject`, `body`).
-  - [x] **Wymaganie biznesowe:** Dodawanie prefixu `[Q]` do tematu zakończonego znakiem zapytania.
-  - [x] **Wymaganie biznesowe:** Dodawanie prefixu `[student.suname]` przed i `[/student.suname]` za nazwiskiem w treści.
-  - [x] Zwracanie poprawnej sygnatury odpowiedzi ze statusem `"queued"`.
-  - [x] **Wymaganie:** Poprawne odczytywanie `appId` oraz `appName` z tokena JWT bez użycia bazy danych.
+- `MailSender.Api` - API, kontrolery, Swagger i JWT.
+- `MailSender.Core` - modele i logika przetwarzania wiadomości.
+- `MailSender.Infrastructure` - miejsce na przyszłą integrację z zewnętrznym dostawcą poczty.
 
-- [ ] **Zadanie 6: Serwis integracyjny z dostawcą e-mail (Brevo)**
-  - [ ] Założenie konta i pobranie klucza API z https://www.brevo.com/.
-  - [ ] Zaimplementowanie prostego serwisu komunikującego się z API Brevo.
-  - [ ] Umożliwienie wysłania wiadomości z przekazaniem parametrów: Nadawca (To), Temat (Subject), Treść (Body).
-  - [ ] **Wymaganie:** Zabezpieczenie danych autentykacyjnych do Brevo (klucz API nie może znajdować się w kodzie ani pliku appsettings).
+## Wymagania
 
-- [ ] **Zadanie 7: Podpięcie serwisu wysyłkowego**
-  - [ ] Użycie implementacji serwisu Brevo bezpośrednio w endpoincie `/mail/send`.
+- .NET SDK 9.0.
+- Visual Studio 2022 albo VS Code z rozszerzeniem C#.
+- Dostęp do `dotnet user-secrets`.
 
-- [ ] **Zadanie 8: Testy końcowe (End-to-End)**
-  - [ ] Sprawdzenie poprawności działania całej aplikacji: rejestracja nowej aplikacji i udane dostarczenie testowej wiadomości na fizyczną skrzynkę pocztową.
+## Instalacja pakietów
+
+W projekcie nie trzeba ręcznie instalować paczek z NuGet, bo są już wpisane w plikach `.csproj`. Wystarczy wykonać restore:
+
+```bash
+dotnet restore
+```
+
+Jeśli chcesz sprawdzić build od razu po pobraniu zależności:
+
+```bash
+dotnet build MailSender.sln
+```
+
+## User Secrets
+
+Projekt używa `User Secrets` do trzymania wrażliwych danych. W katalogu projektu API ustaw wymagane sekrety:
+
+```bash
+cd MailSender.Api
+dotnet user-secrets init
+dotnet user-secrets set "JwtSettings:SecretKey" "twoj_super_dlugi_i_losowy_klucz"
+dotnet user-secrets set "ExpectedClientPassword" "haslo_do_rejestracji"
+```
+
+Jeśli później podłączysz Brevo, dodaj tam również klucz API, zamiast trzymać go w `appsettings.json`.
+
+## Uruchomienie
+
+### Z konsoli
+
+```bash
+dotnet run --project MailSender.Api
+```
+
+### W Visual Studio
+
+- Otwórz `MailSender.sln`.
+- Ustaw `MailSender.Api` jako projekt startowy.
+- Uruchom aplikację w trybie `Development`.
+
+## Jak używać
+
+### 1. Rejestracja klienta
+
+Wyślij `POST /client-app/register` z danymi:
+
+```json
+{
+  "appId": "demo-app",
+  "appName": "Demo App",
+  "pass": "haslo_do_rejestracji"
+}
+```
+
+W odpowiedzi dostaniesz token JWT (`key`).
+
+### 2. Wysłanie maila
+
+W Swaggerze kliknij `Authorize`, wklej token w formacie:
+
+```text
+Bearer twoj_token_jwt
+```
+
+Następnie wywołaj `POST /mail/send`.
+
+## Co jest jeszcze potrzebne do wyższej oceny
+
+- Integracja z prawdziwym dostawcą e-mail, np. Brevo.
+- Przeniesienie wysyłki maila z logiki testowej do osobnego serwisu infrastruktury.
+- Bezpieczne trzymanie klucza API do Brevo w `User Secrets` lub zmiennych środowiskowych.
+- Testy end-to-end dla scenariusza: rejestracja -> token JWT -> wysyłka wiadomości.
+- Uporządkowanie odpowiedzi API i dodanie lepszej walidacji danych wejściowych.
+
+## Notatka o Swaggerze
+
+W Swaggerze możesz użyć `Authorize` do wklejenia JWT i odblokowania endpointów chronionych autoryzacją. Jeśli chcesz, żeby przy konkretnym endpointcie był widoczny lock icon, trzeba dodatkowo zadbać o poprawną adnotację `Authorize` i konfigurację Swaggera dla wymagań bezpieczeństwa.
+
+## Aktualny stan zadań
+
+- [x] Utworzenie projektu backendu .NET.
+- [x] Konfiguracja JWT.
+- [x] Swagger z obsługą tokena.
+- [x] Rejestracja aplikacji klienta.
+- [x] Wysyłka maila po autoryzacji.
+- [ ] Integracja z Brevo.
+- [ ] Podłączenie realnej wysyłki maila.
+- [ ] Testy end-to-end.
