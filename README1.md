@@ -301,4 +301,8 @@ Zweryfikowano pełny scenariusz:
 
 # Autorzy
 
-Projekt wykonany w ramach zajęć laboratoryjnych.
+Projekt wykonany w ramach zajęć laboratoryjnych przez : 
+-Szymon Koń 
+-Grzegorz Marczak
+-Konrad Francuz
+-Jakub Cybak
