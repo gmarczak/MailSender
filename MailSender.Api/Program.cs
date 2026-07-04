@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using MailSender.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -42,6 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var expectedPass = builder.Configuration["ExpectedClientPassword"];
 builder.Services.AddScoped<IMailFilterService>(provider => new MailFilterService(expectedPass!));
+builder.Services.AddHttpClient<IMailSenderProvider, BrevoMailSenderProvider>();
 
 var app = builder.Build();
 
@@ -52,9 +54,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.MapControllers();
-
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
+
+
+
 
 app.Run();

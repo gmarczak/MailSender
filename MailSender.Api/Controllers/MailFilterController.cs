@@ -8,6 +8,8 @@ namespace MailSender.Api.Controllers
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using System.Text;
+    using MailSender.Infrastructure;
+    using Microsoft.Extensions.Configuration;
 
     [ApiController]
     [Route("client-app")]
@@ -15,11 +17,16 @@ namespace MailSender.Api.Controllers
     {
         private readonly IMailFilterService _mailFilterService;
         private readonly IConfiguration _config;
+        private readonly IMailSenderProvider _mailSenderProvider;
 
-        public MailFilterController(IMailFilterService mailFilterService, IConfiguration config)
+        public MailFilterController(
+    IMailFilterService mailFilterService,
+    IConfiguration config,
+    IMailSenderProvider mailSenderProvider)
         {
             _mailFilterService = mailFilterService;
             _config = config;
+            _mailSenderProvider = mailSenderProvider;
         }
 
         [HttpPost("register")]
@@ -57,23 +64,49 @@ namespace MailSender.Api.Controllers
             }
             else
             {
-                return StatusCode(403, new { error = "Invalid index-based password 53" });
+                return StatusCode(403, new
+                {
+                    error = "Invalid index-based password XX"
+                });
             }
         }
 
         [Authorize]
         [HttpPost("/mail/send")]
-        public IActionResult SendEmail([FromBody] InboundEmails email)
+        
+        public async Task<IActionResult> SendEmail([FromBody] InboundEmails email)
         {
             var processedEmail = _mailFilterService.ProcessEmail(email);
 
-            var appIdFromToken = User.FindFirst("AppId")?.Value ?? "NieznaneId";
-            var appNameFromToken = User.FindFirst("AppName")?.Value ?? "NieznanaNazwa";
+            var appIdFromToken = User.FindFirst("AppId")?.Value;
+            var appNameFromToken = User.FindFirst("AppName")?.Value;
+
+            if (string.IsNullOrWhiteSpace(appIdFromToken) || string.IsNullOrWhiteSpace(appNameFromToken))
+            {
+                return Unauthorized(new { error = "Invalid token" });
+            }
+
+            try
+            {
+                await _mailSenderProvider.SendAsync(
+                    processedEmail.To,
+                    processedEmail.Subject,
+                    processedEmail.Body
+                );
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(502, new
+                {
+                    error = "Mail provider error",
+                    details = ex.Message
+                });
+            }
 
             return Ok(new
             {
-                appId = "my app id",
-                appName = "my app name",
+                appId = appIdFromToken,
+                appName = appNameFromToken,
                 status = "queued",
                 email = new
                 {
@@ -85,4 +118,5 @@ namespace MailSender.Api.Controllers
         }
 
     }
+
 }
