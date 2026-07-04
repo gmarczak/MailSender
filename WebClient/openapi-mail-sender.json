@@ -1,0 +1,134 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MailSender API",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5134"
+    }
+  ],
+  "paths": {
+    "/client-app/register": {
+      "post": {
+        "summary": "Register client application",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterClientAppRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterClientAppResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid password"
+          }
+        }
+      }
+    },
+    "/mail/send": {
+      "post": {
+        "summary": "Send email",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "502": {
+            "description": "Mail provider error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "RegisterClientAppRequest": {
+        "type": "object",
+        "properties": {
+          "appId": { "type": "string" },
+          "appName": { "type": "string" },
+          "pass": { "type": "string" }
+        }
+      },
+      "RegisterClientAppResponse": {
+        "type": "object",
+        "properties": {
+          "appId": { "type": "string" },
+          "appName": { "type": "string" },
+          "key": { "type": "string" }
+        }
+      },
+      "SendMailRequest": {
+        "type": "object",
+        "properties": {
+          "to": { "type": "string" },
+          "subject": { "type": "string" },
+          "body": { "type": "string" }
+        }
+      },
+      "EmailDto": {
+        "type": "object",
+        "properties": {
+          "to": { "type": "string" },
+          "subject": { "type": "string" },
+          "body": { "type": "string" }
+        }
+      },
+      "SendMailResponse": {
+        "type": "object",
+        "properties": {
+          "appId": { "type": "string" },
+          "appName": { "type": "string" },
+          "status": { "type": "string" },
+          "email": { "$ref": "#/components/schemas/EmailDto" }
+        }
+      }
+    }
+  }
+}

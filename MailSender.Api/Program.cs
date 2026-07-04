@@ -45,6 +45,15 @@ var expectedPass = builder.Configuration["ExpectedClientPassword"];
 builder.Services.AddScoped<IMailFilterService>(provider => new MailFilterService(expectedPass!));
 builder.Services.AddHttpClient<IMailSenderProvider, BrevoMailSenderProvider>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebClient", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -54,6 +63,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowWebClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

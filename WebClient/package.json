@@ -1,0 +1,13 @@
+{
+  "name": "mail-sender-webclient",
+  "version": "1.0.0",
+  "description": "Demo client for MailSender API",
+  "scripts": {
+    "build": "tsc",
+    "generate": "openapi-generator-cli generate -i http://localhost:5134/swagger/v1/swagger.json -g typescript-fetch -o typescript-client-generated"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@openapitools/openapi-generator-cli": "^2.0.0"
+  }
+}

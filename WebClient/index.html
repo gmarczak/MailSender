@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MailSender WebClient</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>MailSender WebClient</h1>
+    <p class="hint">Prosty klient HTML/JavaScript do testowania endpointu <code>/mail/send</code>.</p>
+
+    <section class="card">
+      <h2>1. Token JWT</h2>
+      <p>Najpierw zarejestruj aplikację w Swaggerze przez <code>/client-app/register</code>, a potem wklej tutaj sam token bez słowa Bearer.</p>
+      <textarea id="token" rows="5" placeholder="Wklej token JWT"></textarea>
+    </section>
+
+    <section class="card">
+      <h2>2. Dane wiadomości</h2>
+      <label for="to">Odbiorca</label>
+      <input id="to" type="email" value="szumonkon@gmail.com" />
+
+      <label for="subject">Temat</label>
+      <input id="subject" type="text" value="Czy działa?" />
+
+      <label for="body">Treść</label>
+      <textarea id="body" rows="5">Test Koń</textarea>
+
+      <button onclick="sendMail()">Wyślij maila</button>
+    </section>
+
+    <section class="card">
+      <h2>3. Odpowiedź API</h2>
+      <pre id="result">Brak odpowiedzi.</pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
