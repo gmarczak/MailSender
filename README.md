@@ -112,4 +112,4 @@ W Swaggerze możesz użyć `Authorize` do wklejenia JWT i odblokowania endpoint�
 - [x] Wysyłka maila po autoryzacji.
 - [x] Integracja z Brevo.
 - [x] Podłączenie realnej wysyłki maila.
-- [x] Testy end-to-end.
+- [x] Testy end-to-end. (Ręcznie przetestowano pełny przepływ działania aplikacji w Swaggerze.)
