@@ -1,115 +1,308 @@
 # MailSender
 
-Projekt ASP.NET Core do rejestracji aplikacji klienckiej, generowania JWT oraz filtrowania maili przed wysyłką.
+MailSender to aplikacja Web API napisana w **ASP.NET Core (.NET 9)**, której zadaniem jest rejestracja aplikacji klienckich oraz bezpieczna wysyłka wiadomości e-mail z wykorzystaniem autoryzacji JWT i zewnętrznego dostawcy poczty **Brevo**.
 
-## Co już działa
+Projekt został wykonany w ramach zajęć z tworzenia aplikacji backendowych.
 
-- Rejestracja aplikacji przez endpoint `POST /client-app/register`.
-- Generowanie tokena JWT po poprawnej rejestracji.
-- Ochrona endpointu `POST /mail/send` autoryzacją JWT.
-- Swagger z możliwością wklejenia tokena przez przycisk `Authorize`.
-- Modyfikowanie tematu wiadomości, jeśli kończy się znakiem zapytania.
-- Oznaczanie nazwisk w treści wiadomości tagami `[student.surname]...[/student.surname]`.
-- Odczyt `appId` oraz `appName` z tokena JWT bez bazy danych.
+---
 
-## Struktura projektu
+# Funkcjonalności
 
-- `MailSender.Api` - API, kontrolery, Swagger i JWT.
-- `MailSender.Core` - modele i logika przetwarzania wiadomości.
-- `MailSender.Infrastructure` - miejsce na przyszłą integrację z zewnętrznym dostawcą poczty.
+Aplikacja umożliwia:
 
-## Wymagania
+- rejestrację aplikacji klienckiej,
+- generowanie tokenu JWT ważnego przez 90 dni,
+- autoryzację endpointów z wykorzystaniem JWT,
+- wysyłanie wiadomości e-mail po poprawnej autoryzacji,
+- integrację z zewnętrznym dostawcą poczty **Brevo**,
+- modyfikację treści wiadomości zgodnie z wymaganiami biznesowymi,
+- konfigurację poufnych danych z wykorzystaniem **User Secrets**.
 
-- .NET SDK 9.0.
-- Visual Studio 2022 albo VS Code z rozszerzeniem C#.
-- Dostęp do `dotnet user-secrets`.
+---
 
-## Instalacja pakietów
+# Zrealizowane wymagania projektu (Basic 3.5)
 
-W projekcie nie trzeba ręcznie instalować paczek z NuGet, bo są już wpisane w plikach `.csproj`. Wystarczy wykonać restore:
+✔ Utworzenie projektu backendowego ASP.NET Core
+
+✔ Konfiguracja uwierzytelniania JWT
+
+✔ Dokumentacja API przy użyciu Swagger
+
+✔ Endpoint rejestracji aplikacji:
+
+```
+POST /client-app/register
+```
+
+✔ Endpoint wysyłki wiadomości:
+
+```
+POST /mail/send
+```
+
+✔ Integracja z usługą Brevo
+
+✔ Rzeczywista wysyłka wiadomości e-mail
+
+✔ Test pełnego przepływu działania aplikacji
+
+---
+
+# Reguły biznesowe
+
+Przed wysłaniem wiadomości aplikacja automatycznie wykonuje następujące operacje:
+
+### 1. Modyfikacja tematu
+
+Jeżeli temat wiadomości kończy się znakiem zapytania (`?`), dodawany jest prefiks:
+
+```
+[Q]
+```
+
+Przykład:
+
+```
+Czy działa?
+```
+
+zamienia się na:
+
+```
+[Q] Czy działa?
+```
+
+---
+
+### 2. Oznaczanie nazwiska
+
+Jeżeli treść wiadomości zawiera nazwisko autora projektu, zostaje ono automatycznie oznaczone:
+
+```
+[student.surname]Nazwisko[/student.surname]
+```
+
+Przykład:
+
+```
+Test Koń
+```
+
+zamienia się na:
+
+```
+Test [student.surname]Koń[/student.surname]
+```
+
+---
+
+# Architektura projektu
+
+Projekt został podzielony na trzy warstwy:
+
+## MailSender.Api
+
+Warstwa prezentacji.
+
+Zawiera:
+
+- kontrolery,
+- konfigurację JWT,
+- konfigurację Swagger,
+- konfigurację Dependency Injection.
+
+---
+
+## MailSender.Core
+
+Warstwa logiki biznesowej.
+
+Zawiera:
+
+- modele danych,
+- serwisy odpowiedzialne za przetwarzanie wiadomości,
+- interfejs `IMailSenderProvider`.
+
+---
+
+## MailSender.Infrastructure
+
+Warstwa infrastruktury.
+
+Zawiera implementację wysyłki wiadomości z wykorzystaniem usługi **Brevo**.
+
+---
+
+# Wykorzystane technologie
+
+- .NET 9
+- ASP.NET Core Web API
+- JWT Authentication
+- Swagger / OpenAPI
+- Brevo Email API
+- Dependency Injection
+- User Secrets
+
+---
+
+# Wymagania
+
+- .NET SDK 9.0
+- Visual Studio 2022 lub Visual Studio Code
+- konto Brevo
+- zweryfikowany nadawca w Brevo
+
+---
+
+# Instalacja
+
+Przywrócenie pakietów:
 
 ```bash
 dotnet restore
 ```
 
-Jeśli chcesz sprawdzić build od razu po pobraniu zależności:
+Kompilacja:
 
 ```bash
 dotnet build MailSender.sln
 ```
 
-## User Secrets
-
-Projekt używa `User Secrets` do trzymania wrażliwych danych. W katalogu projektu API ustaw wymagane sekrety:
-
-```bash
-cd MailSender.Api
-dotnet user-secrets init
-dotnet user-secrets set "JwtSettings:SecretKey" "twoj_super_dlugi_i_losowy_klucz"
-dotnet user-secrets set "ExpectedClientPassword" "haslo_do_rejestracji"
-```
-
-Jeśli później podłączysz Brevo, dodaj tam również klucz API, zamiast trzymać go w `appsettings.json`.
-
-## Uruchomienie
-
-### Z konsoli
+Uruchomienie:
 
 ```bash
 dotnet run --project MailSender.Api
 ```
 
-### W Visual Studio
+---
 
-- Otwórz `MailSender.sln`.
-- Ustaw `MailSender.Api` jako projekt startowy.
-- Uruchom aplikację w trybie `Development`.
+# Konfiguracja User Secrets
 
-## Jak używać
+Projekt wykorzystuje **User Secrets** do przechowywania poufnych danych.
 
-### 1. Rejestracja klienta
+W katalogu projektu API wykonaj:
 
-Wyślij `POST /client-app/register` z danymi:
+```bash
+dotnet user-secrets init
+```
+
+Następnie ustaw wymagane wartości:
+
+```bash
+dotnet user-secrets set "JwtSettings:SecretKey" "twoj_bardzo_dlugi_klucz"
+dotnet user-secrets set "ExpectedClientPassword" "q##waQXX"
+
+dotnet user-secrets set "Brevo:ApiKey" "xkeysib-..."
+dotnet user-secrets set "Brevo:SenderEmail" "twoj@email.pl"
+dotnet user-secrets set "Brevo:SenderName" "MailSender"
+```
+
+> Dane poufne nie są przechowywane w repozytorium Git.
+
+---
+
+# Uruchomienie aplikacji
+
+Po uruchomieniu aplikacji dostępny będzie Swagger:
+
+```
+https://localhost:xxxx/swagger
+```
+
+---
+
+# Przykładowy przebieg działania
+
+## 1. Rejestracja aplikacji
+
+```
+POST /client-app/register
+```
+
+Body:
 
 ```json
 {
   "appId": "demo-app",
   "appName": "Demo App",
-  "pass": "haslo_do_rejestracji"
+  "pass": "q##waQXX"
 }
 ```
 
-W odpowiedzi dostaniesz token JWT (`key`).
+Odpowiedź:
 
-### 2. Wysłanie maila
-
-W Swaggerze kliknij `Authorize`, wklej token w formacie:
-
-```text
-Bearer twoj_token_jwt
+```json
+{
+  "appId": "demo-app",
+  "appName": "Demo App",
+  "key": "JWT_TOKEN"
+}
 ```
 
-Następnie wywołaj `POST /mail/send`.
+---
 
-## Co jest jeszcze potrzebne do wyższej oceny
+## 2. Autoryzacja
 
-- Integracja z prawdziwym dostawcą e-mail, np. Brevo.
-- Przeniesienie wysyłki maila z logiki testowej do osobnego serwisu infrastruktury.
-- Bezpieczne trzymanie klucza API do Brevo w `User Secrets` lub zmiennych środowiskowych.
-- Testy end-to-end dla scenariusza: rejestracja -> token JWT -> wysyłka wiadomości.
-- Uporządkowanie odpowiedzi API i dodanie lepszej walidacji danych wejściowych.
+W Swaggerze wybierz przycisk **Authorize** i wklej:
 
-## Notatka o Swaggerze
+```
+Bearer JWT_TOKEN
+```
 
-W Swaggerze możesz użyć `Authorize` do wklejenia JWT i odblokowania endpointów chronionych autoryzacją. Jeśli chcesz, żeby przy konkretnym endpointcie był widoczny lock icon, trzeba dodatkowo zadbać o poprawną adnotację `Authorize` i konfigurację Swaggera dla wymagań bezpieczeństwa.
+---
 
-## Aktualny stan zadań
+## 3. Wysłanie wiadomości
 
-- [x] Utworzenie projektu backendu .NET.
-- [x] Konfiguracja JWT.
-- [x] Swagger z obsługą tokena.
-- [x] Rejestracja aplikacji klienta.
-- [x] Wysyłka maila po autoryzacji.
-- [ ] Integracja z Brevo.
-- [ ] Podłączenie realnej wysyłki maila.
-- [ ] Testy end-to-end.
+```
+POST /mail/send
+```
+
+Przykład:
+
+```json
+{
+  "to": "example@email.com",
+  "subject": "Czy działa?",
+  "body": "Test Koń"
+}
+```
+
+Przykładowa odpowiedź:
+
+```json
+{
+  "appId": "demo-app",
+  "appName": "Demo App",
+  "status": "queued",
+  "email": {
+    "to": "example@email.com",
+    "subject": "[Q] Czy działa?",
+    "body": "Test [student.surname]Koń[/student.surname]"
+  }
+}
+```
+
+---
+
+# Test działania
+
+Przetestowano poprawność działania aplikacji w środowisku lokalnym.
+
+Zweryfikowano pełny scenariusz:
+
+1. Rejestracja aplikacji.
+2. Wygenerowanie tokenu JWT.
+3. Autoryzacja w Swagger.
+4. Wysłanie wiadomości.
+5. Integracja z Brevo.
+6. Dostarczenie wiadomości e-mail.
+
+---
+
+# Autorzy
+
+Projekt wykonany w ramach zajęć laboratoryjnych przez : 
+-Szymon Koń 
+-Grzegorz Marczak
+-Konrad Francuz
+-Jakub Cybak
